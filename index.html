@@ -6,15 +6,20 @@
     <title>Universal File Converter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'media', // Automatic Light/Dark mode via prefers-color-scheme
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' }
+        // Check if tailwind successfully loaded before configuring to prevent ReferenceErrors
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: 'media', // Automatic Light/Dark mode via prefers-color-scheme
+                theme: {
+                    extend: {
+                        colors: {
+                            brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' }
+                        }
                     }
                 }
             }
+        } else {
+            console.warn("Tailwind CSS failed to load from CDN. Styles may be incomplete.");
         }
     </script>
     <!-- Dependencies -->
@@ -108,8 +113,8 @@
     <!-- Application Logic -->
     <script type="module">
         // --- FFmpeg Configuration via ESM Modules (Bypassing module restrictions) ---
-        import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js';
-        import { fetchFile } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
+        import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js';
+        import { fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
 
         // --- Custom Robust Blob Fetcher ---
         // Bypasses strict iframe/sandbox restrictions that cause standard toBlobURL to fail
@@ -158,7 +163,10 @@
         const modeBtns = document.querySelectorAll('.mode-btn');
 
         // --- Initialization ---
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        // Check if pdfjsLib loaded successfully before modifying it to prevent ReferenceErrors
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
 
         // --- UI Event Listeners ---
         modeBtns.forEach(btn => {
@@ -347,10 +355,11 @@
             showToast("Initializing Media Engine...", "info");
             const ffmpeg = new FFmpeg();
             
-            // Prefer UMD builds as they are often more robust against cross-origin module blocks than ESM
+            // FIX: Using the correct 'esm' paths to match the imports above.
+            // Prioritizing jsDelivr as it is highly dependable for WebAssembly files.
             const cdns = [
-                'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd',
-                'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd'
+                'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm',
+                'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
             ];
 
             let loaded = false;
